@@ -38,7 +38,8 @@ interface NexHealthResponse {
 }
 
 async function registerWebhook() {
-  const NEXHEALTH_API_URL = 'https://api.nexhealth.com/api/v1';
+  // Updated to use correct base URL
+  const NEXHEALTH_API_URL = 'https://nexhealth.info/api/v1';
   const NEXHEALTH_API_KEY = process.env.NEXHEALTH_API_KEY;
   const YOUR_WEBHOOK_URL = process.env.WEBHOOK_URL;
 
@@ -56,6 +57,7 @@ async function registerWebhook() {
 
   try {
     console.log('\nAttempting to register webhook...');
+    console.log('API URL:', NEXHEALTH_API_URL);
     console.log('Target URL:', YOUR_WEBHOOK_URL);
     
     const response = await fetch(`${NEXHEALTH_API_URL}/webhook_endpoints`, {
