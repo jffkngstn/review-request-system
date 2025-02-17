@@ -95,7 +95,7 @@ async function registerWebhook() {
     const response = await fetch(`${NEXHEALTH_API_URL}/webhook_endpoints`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/vnd.Nexhealth+json;version=2',
         'Accept': 'application/vnd.Nexhealth+json;version=2',
         'Authorization': `Bearer ${authToken}`
       },
@@ -130,7 +130,7 @@ async function registerWebhook() {
       const subscriptionResponse = await fetch(`${NEXHEALTH_API_URL}/webhook_subscriptions`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/vnd.Nexhealth+json;version=2',
           'Accept': 'application/vnd.Nexhealth+json;version=2',
           'Authorization': `Bearer ${authToken}`
         },
