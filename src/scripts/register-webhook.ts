@@ -2,6 +2,23 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 
+interface WebhookEndpoint {
+  id: number;
+  target_url: string;
+  secret_key: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface NexHealthResponse {
+  code: boolean;
+  description?: string[];
+  error?: string[];
+  data: WebhookEndpoint[];
+  count: number;
+}
+
 async function registerWebhook() {
   const NEXHEALTH_API_URL = 'https://api.nexhealth.com/api/v1';
   const NEXHEALTH_API_KEY = process.env.NEXHEALTH_API_KEY;
