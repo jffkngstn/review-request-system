@@ -14,3 +14,15 @@ export interface ReviewRequest {
     appointment_time?: string;
   };
 }
+
+export interface Database {
+  public: {
+    Tables: {
+      review_requests: {
+        Row: ReviewRequest;
+        Insert: Omit<ReviewRequest, 'id' | 'created_at'>;
+        Update: Partial<Omit<ReviewRequest, 'id' | 'created_at'>>;
+      };
+    };
+  };
+}
