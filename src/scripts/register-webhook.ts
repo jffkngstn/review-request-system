@@ -38,12 +38,10 @@ interface NexHealthResponse {
 }
 
 async function registerWebhook() {
-  // Updated to use correct base URL
   const NEXHEALTH_API_URL = 'https://nexhealth.info/api/v1';
   const NEXHEALTH_API_KEY = process.env.NEXHEALTH_API_KEY;
   const YOUR_WEBHOOK_URL = process.env.WEBHOOK_URL;
 
-  // Add debugging
   console.log('\nEnvironment variables:');
   console.log('NEXHEALTH_API_KEY exists:', !!NEXHEALTH_API_KEY);
   console.log('WEBHOOK_URL:', YOUR_WEBHOOK_URL);
@@ -64,50 +62,68 @@ async function registerWebhook() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${NEXHEALTH_API_KEY}`
+        'Authorization': `Bearer ${NEXHEALTH_API_KEY}`,
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
         target_url: YOUR_WEBHOOK_URL
       })
     });
 
-    const data = await response.json() as NexHealthResponse;
+    console.log('\nResponse status:', response.status);
+    console.log('Response headers:', response.headers);
+    
+    // Get the raw text first
+    const responseText = await response.text();
+    console.log('Raw response:', responseText);
 
-    if (!response.ok) {
-      console.error('Failed to register webhook:', data);
+    try {
+      const data = JSON.parse(responseText) as NexHealthResponse;
+
+      if (!response.ok) {
+        console.error('Failed to register webhook:', data);
+        process.exit(1);
+      }
+
+      // Save the secret key to your .env file
+      const secretKey = data.data[0].secret_key;
+      console.log('Successfully registered webhook!');
+      console.log('Webhook ID:', data.data[0].id);
+      console.log('Secret Key:', secretKey);
+      console.log('\nPlease add this secret key to your .env file as NEXHEALTH_WEBHOOK_SECRET');
+
+      // Now register for the appointment.completed event
+      console.log('\nRegistering for appointment.completed event...');
+      const subscriptionResponse = await fetch(`${NEXHEALTH_API_URL}/webhook_subscriptions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${NEXHEALTH_API_KEY}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          webhook_endpoint_id: data.data[0].id,
+          event_type: 'appointment.completed'
+        })
+      });
+
+      const subscriptionText = await subscriptionResponse.text();
+      console.log('Subscription response:', subscriptionText);
+
+      const subscriptionData = JSON.parse(subscriptionText) as NexHealthResponse;
+
+      if (!subscriptionResponse.ok) {
+        console.error('Failed to create webhook subscription:', subscriptionData);
+        process.exit(1);
+      }
+
+      console.log('\nSuccessfully subscribed to appointment.completed events!');
+      console.log('Subscription ID:', subscriptionData.data[0].id);
+
+    } catch (parseError) {
+      console.error('Error parsing response:', parseError);
       process.exit(1);
     }
-
-    // Save the secret key to your .env file
-    const secretKey = data.data[0].secret_key;
-    console.log('Successfully registered webhook!');
-    console.log('Webhook ID:', data.data[0].id);
-    console.log('Secret Key:', secretKey);
-    console.log('\nPlease add this secret key to your .env file as NEXHEALTH_WEBHOOK_SECRET');
-
-    // Now register for the appointment.completed event
-    console.log('\nRegistering for appointment.completed event...');
-    const subscriptionResponse = await fetch(`${NEXHEALTH_API_URL}/webhook_subscriptions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${NEXHEALTH_API_KEY}`
-      },
-      body: JSON.stringify({
-        webhook_endpoint_id: data.data[0].id,
-        event_type: 'appointment.completed'
-      })
-    });
-
-    const subscriptionData = await subscriptionResponse.json() as NexHealthResponse;
-
-    if (!subscriptionResponse.ok) {
-      console.error('Failed to create webhook subscription:', subscriptionData);
-      process.exit(1);
-    }
-
-    console.log('\nSuccessfully subscribed to appointment.completed events!');
-    console.log('Subscription ID:', subscriptionData.data[0].id);
 
   } catch (error) {
     console.error('Error registering webhook:', error);
