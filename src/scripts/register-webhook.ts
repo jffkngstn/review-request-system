@@ -1,6 +1,24 @@
 // src/scripts/register-webhook.ts
-import 'dotenv/config';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+import * as fs from 'fs';
 import fetch from 'node-fetch';
+
+// Explicitly load .env.local
+const envPath = path.resolve(process.cwd(), '.env.local');
+console.log('Looking for .env.local at:', envPath);
+console.log('File exists:', fs.existsSync(envPath));
+
+if (!fs.existsSync(envPath)) {
+  console.error('.env.local file not found!');
+  process.exit(1);
+}
+
+const envConfig = dotenv.parse(fs.readFileSync(envPath));
+// Manually set environment variables
+for (const k in envConfig) {
+  process.env[k] = envConfig[k];
+}
 
 interface WebhookEndpoint {
   id: number;
@@ -25,18 +43,21 @@ async function registerWebhook() {
   const YOUR_WEBHOOK_URL = process.env.WEBHOOK_URL;
 
   // Add debugging
-  console.log('Environment variables:');
+  console.log('\nEnvironment variables:');
   console.log('NEXHEALTH_API_KEY exists:', !!NEXHEALTH_API_KEY);
   console.log('WEBHOOK_URL:', YOUR_WEBHOOK_URL);
   
   if (!NEXHEALTH_API_KEY || !YOUR_WEBHOOK_URL) {
-    console.error('Missing required environment variables:');
+    console.error('\nMissing required environment variables:');
     if (!NEXHEALTH_API_KEY) console.error('- NEXHEALTH_API_KEY is missing');
     if (!YOUR_WEBHOOK_URL) console.error('- WEBHOOK_URL is missing');
     process.exit(1);
   }
 
   try {
+    console.log('\nAttempting to register webhook...');
+    console.log('Target URL:', YOUR_WEBHOOK_URL);
+    
     const response = await fetch(`${NEXHEALTH_API_URL}/webhook_endpoints`, {
       method: 'POST',
       headers: {
@@ -63,6 +84,7 @@ async function registerWebhook() {
     console.log('\nPlease add this secret key to your .env file as NEXHEALTH_WEBHOOK_SECRET');
 
     // Now register for the appointment.completed event
+    console.log('\nRegistering for appointment.completed event...');
     const subscriptionResponse = await fetch(`${NEXHEALTH_API_URL}/webhook_subscriptions`, {
       method: 'POST',
       headers: {
