@@ -2,30 +2,20 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 
-interface WebhookEndpoint {
-  id: number;
-  target_url: string;
-  secret_key: string;
-  active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-interface NexHealthResponse {
-  code: boolean;
-  description?: string[];
-  error?: string[];
-  data: WebhookEndpoint[];
-  count: number;
-}
-
 async function registerWebhook() {
   const NEXHEALTH_API_URL = 'https://api.nexhealth.com/api/v1';
   const NEXHEALTH_API_KEY = process.env.NEXHEALTH_API_KEY;
-  const YOUR_WEBHOOK_URL = process.env.WEBHOOK_URL; 
+  const YOUR_WEBHOOK_URL = process.env.WEBHOOK_URL;
 
+  // Add debugging
+  console.log('Environment variables:');
+  console.log('NEXHEALTH_API_KEY exists:', !!NEXHEALTH_API_KEY);
+  console.log('WEBHOOK_URL:', YOUR_WEBHOOK_URL);
+  
   if (!NEXHEALTH_API_KEY || !YOUR_WEBHOOK_URL) {
-    console.error('Missing required environment variables');
+    console.error('Missing required environment variables:');
+    if (!NEXHEALTH_API_KEY) console.error('- NEXHEALTH_API_KEY is missing');
+    if (!YOUR_WEBHOOK_URL) console.error('- WEBHOOK_URL is missing');
     process.exit(1);
   }
 

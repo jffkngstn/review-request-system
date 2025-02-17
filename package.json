@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:db": "npx ts-node --project tsconfig.scripts.json -r tsconfig-paths/register src/scripts/test-db.ts"
+    "test:db": "npx ts-node --project tsconfig.scripts.json -r tsconfig-paths/register src/scripts/test-db.ts",
+    "register-webhook": "npx ts-node --project tsconfig.scripts.json -r tsconfig-paths/register src/scripts/register-webhook.ts"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.4",
