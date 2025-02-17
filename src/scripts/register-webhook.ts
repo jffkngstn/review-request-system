@@ -63,7 +63,7 @@ async function getAuthToken(): Promise<string> {
   const response = await fetch('https://nexhealth.info/authenticates', {
     method: 'POST',
     headers: {
-      'Accept': 'application/vnd.Nexhealth+json; version=2',
+      'Accept': 'application/vnd.Nexhealth+json;version=2',
       'Authorization': process.env.NEXHEALTH_API_KEY || ''
     }
   });
@@ -87,7 +87,7 @@ async function getAuthToken(): Promise<string> {
 }
 
 async function registerWebhook() {
-  const NEXHEALTH_API_URL = 'https://nexhealth.info/api/v1';
+  const NEXHEALTH_API_URL = 'https://nexhealth.info';
   const YOUR_WEBHOOK_URL = process.env.WEBHOOK_URL;
 
   if (!YOUR_WEBHOOK_URL) {
@@ -105,8 +105,8 @@ async function registerWebhook() {
     const response = await fetch(`${NEXHEALTH_API_URL}/webhook_endpoints`, {
       method: 'POST',
       headers: {
+        'Accept': 'application/vnd.Nexhealth+json;version=2',
         'Content-Type': 'application/json',
-        'Accept': 'application/vnd.Nexhealth+json; version=2',
         'Authorization': `Bearer ${authToken}`
       },
       body: JSON.stringify({
@@ -130,21 +130,24 @@ async function registerWebhook() {
     console.log('Secret Key:', endpoint.secret_key);
     console.log('\nPlease add this secret key to your .env file as NEXHEALTH_WEBHOOK_SECRET');
 
-    // Register for appointment updates
+    // Register for appointment updates using the correct URL pattern
     console.log('\nRegistering for appointment_updated event...');
-    const subscriptionResponse = await fetch(`${NEXHEALTH_API_URL}/webhook_subscriptions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/vnd.Nexhealth+json; version=2',
-        'Authorization': `Bearer ${authToken}`
-      },
-      body: JSON.stringify({
-        webhook_endpoint_id: endpoint.id,
-        resource_type: 'Appointment',
-        event: 'appointment_updated'
-      })
-    });
+    const subscriptionResponse = await fetch(
+      `${NEXHEALTH_API_URL}/webhook_endpoints/${endpoint.id}/webhook_subscriptions`,
+      {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/vnd.Nexhealth+json;version=2',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          resource_type: 'Appointment',
+          event: 'appointment_updated',
+          active: true
+        })
+      }
+    );
 
     const subscriptionText = await subscriptionResponse.text();
     console.log('Subscription response:', subscriptionText);
